@@ -1,0 +1,262 @@
+﻿using backend.Data;
+using backend.DTOs.User;
+using backend.Models;
+using backend.Services.Interfaces;
+using Isopoh.Cryptography.Argon2;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+public class AuthService : IAuthService
+{
+    private readonly UserManager<User> _userManager;
+    private readonly RoleManager<Role> _roleManager;
+    private readonly IConfiguration _config;
+    private readonly NhahangContext _context;
+
+    public AuthService(UserManager<User> userManager, RoleManager<Role> roleManager, IConfiguration config, NhahangContext context)
+    {
+        _userManager = userManager;
+        _roleManager = roleManager;
+        _config = config;
+        _context = context;
+    }
+
+    public string GenerateJwt(IList<Claim> claims)
+    {
+        try
+        {
+            var setting = _config.GetSection("JWT:Setting");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:AC"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+                issuer: setting["Issuer"],
+                audience: setting["Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(Convert.ToDouble(setting["AccessExpirationDay"])),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error generating JWT token", ex);
+        }
+    }
+
+    public async Task<User> RegisterAsync(UserDto userDto)
+    {
+        try
+        {
+            var existingUser = await _userManager.FindByEmailAsync(userDto.email);
+            if (existingUser != null)
+                throw new InvalidOperationException("Email already exists");
+
+            var hashedPassword = Argon2.Hash(userDto.password);
+            var user = new User
+            {
+                Email = userDto.email,
+                UserName = userDto.name,
+                PasswordHash = hashedPassword,
+                Phone = userDto.phone,
+            };
+
+            var createUserResult = await _userManager.CreateAsync(user);
+            if (!createUserResult.Succeeded)
+            {
+                throw new InvalidOperationException("Failed to create user: " + string.Join(", ", createUserResult.Errors.Select(e => e.Description)));
+            }
+
+            if (!await _roleManager.RoleExistsAsync("User"))
+            {
+                await _roleManager.CreateAsync(new Role { Name = "User" });
+            }
+            await _userManager.AddToRoleAsync(user, "User");
+
+            return user;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error registering user", ex);
+        }
+    }
+
+    public async Task<string> LoginAsync(LoginDto loginDto,HttpResponse response)
+    {
+        try
+        {
+            var user = await _userManager.FindByEmailAsync(loginDto.email);
+            if (user == null || !Argon2.Verify(user.PasswordHash, loginDto.password))
+            {
+                throw new InvalidOperationException("Invalid email or password");
+            }
+            var roles = await _userManager.GetRolesAsync(user);
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            };
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+            var refreshToken = RefreshToken(claims);
+            var token = GenerateJwt(claims);
+            response.Cookies.Append("auth_token", refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.Lax,
+                Secure = false,
+                Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_config["JWT:Refresh:RefreshExpirationDay"]))
+            });
+            return GenerateJwt(claims);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error logging in", ex);
+        }
+    }
+
+    public async Task LogoutAsync(string id)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+                throw new InvalidOperationException("User not found");
+
+            await _userManager.RemoveAuthenticationTokenAsync(user, "MyApp", "AccessToken");
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error logging out", ex);
+        }
+    }
+
+    public async Task<UserResDto> GetUserInfo(string id)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+                throw new InvalidOperationException("User not found");
+
+            return new UserResDto
+            {
+                name = user.UserName,
+                phone = user.Phone,
+                address = user.Address,
+                email = user.Email
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error retrieving user info", ex);
+        }
+    }
+    public string RefreshToken(IList<Claim> claims)
+    {
+        try
+        {
+            var setting = _config.GetSection("JWT:Refresh");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(setting["KEY"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+                issuer: setting["Issuer"],
+                audience: setting["Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(Convert.ToDouble(setting["RefreshExpirationDay"])),
+                signingCredentials: creds
+            );
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error generating refresh token", ex);
+        }
+    }
+    public string ValidateRefreshToke(string token)
+    {
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_config["JWT:Refresh:KEY"]);
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidIssuer = _config["JWT:Refresh:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = _config["JWT:Refresh:Audience"],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+            var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+            if(principal == null)
+            {
+                throw new InvalidOperationException("Invalid token");
+            }
+            var jwtToken = tokenHandler.ReadJwtToken(token);
+            var subClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+            return subClaim;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error validating refresh token", ex);
+        }
+    }
+
+    public async Task<string> IssueRefreshToken(string token)
+    {
+        try
+        {
+            var sub = ValidateRefreshToke(token);
+            if(sub == null)
+                throw new InvalidOperationException("Invalid token");
+            var user = await _userManager.FindByIdAsync(sub) ?? throw new InvalidOperationException("User not found");
+            var roles = await _userManager.GetRolesAsync(user);
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            };
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+            //var refreshToken = RefreshToken(claims);
+            var newToken = GenerateJwt(claims);
+            return newToken;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error issuing refresh token", ex);
+        }
+    }
+    public async Task<User> Promote(string id)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+                throw new InvalidOperationException("User not found");
+
+            if (await _userManager.IsInRoleAsync(user, "Admin"))
+                throw new InvalidOperationException("User is already an admin");
+
+            await _userManager.RemoveFromRoleAsync(user, "User");
+            await _userManager.AddToRoleAsync(user, "Admin");
+
+            return user;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error promoting user", ex);
+        }
+    }
+        
+}
