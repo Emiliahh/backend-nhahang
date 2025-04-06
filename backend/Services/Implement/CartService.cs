@@ -3,6 +3,7 @@ using backend.DTOs.Product;
 using backend.Models;
 using backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using static backend.Exceptions.ProductException;
 
 namespace backend.Services.Implement
 {
@@ -106,19 +107,26 @@ namespace backend.Services.Implement
         }
         public async Task<Cartitem> updateQuantity(string userId, string productId, int quantity)
         {
-            if (!Guid.TryParse(userId, out Guid parsedUserId))
+            try
             {
-                throw new ArgumentException("Invalid user ID format.", nameof(userId));
+                if (!Guid.TryParse(userId, out Guid parsedUserId))
+                {
+                    throw new ArgumentException("Invalid user ID format.", nameof(userId));
+                }
+                var existing = await _context.Cartitems.FirstOrDefaultAsync(x => x.ProductId == productId && x.UserId == parsedUserId);
+                if (existing == null)
+                {
+                    throw new ProductNotFoundException(productId);
+                }
+                existing.Quantity = quantity;
+                _context.Cartitems.Update(existing);
+                await _context.SaveChangesAsync();
+                return existing;
             }
-            var existing = await _context.Cartitems.FirstOrDefaultAsync(x => x.ProductId == productId && x.UserId == parsedUserId);
-            if (existing == null)
+            catch (Exception e)
             {
-                throw new ArgumentException("Product not found in cart.", nameof(productId));
+                throw new Exception(e.Message);
             }
-            existing.Quantity = quantity;
-            _context.Cartitems.Update(existing);
-            await _context.SaveChangesAsync();
-            return existing;
         }
 
     }

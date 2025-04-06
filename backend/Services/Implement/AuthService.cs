@@ -1,5 +1,6 @@
 ﻿using backend.Data;
 using backend.DTOs.User;
+using backend.Exceptions;
 using backend.Models;
 using backend.Services.Interfaces;
 using Isopoh.Cryptography.Argon2;
@@ -53,7 +54,7 @@ public class AuthService : IAuthService
         {
             var existingUser = await _userManager.FindByEmailAsync(userDto.email);
             if (existingUser != null)
-                throw new InvalidOperationException("Email already exists");
+                throw new UserAlreadyExistException("Email already exists");
 
             var hashedPassword = Argon2.Hash(userDto.password);
             var user = new User
@@ -67,7 +68,7 @@ public class AuthService : IAuthService
             var createUserResult = await _userManager.CreateAsync(user);
             if (!createUserResult.Succeeded)
             {
-                throw new InvalidOperationException("Failed to create user: " + string.Join(", ", createUserResult.Errors.Select(e => e.Description)));
+                throw new Exception("Failed to create user: " + string.Join(", ", createUserResult.Errors.Select(e => e.Description)));
             }
 
             if (!await _roleManager.RoleExistsAsync("User"))
@@ -89,9 +90,13 @@ public class AuthService : IAuthService
         try
         {
             var user = await _userManager.FindByEmailAsync(loginDto.email);
-            if (user == null || !Argon2.Verify(user.PasswordHash, loginDto.password))
+            if (user == null)
             {
-                throw new InvalidOperationException("Invalid email or password");
+                throw new  UserNotFoundException("User not found");
+            }
+            if(!Argon2.Verify(user.PasswordHash, loginDto.password))
+            {
+                throw new PasswordMismatchException("Invalid password");
             }
             var roles = await _userManager.GetRolesAsync(user);
             var claims = new List<Claim>
@@ -126,7 +131,7 @@ public class AuthService : IAuthService
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
-                throw new InvalidOperationException("User not found");
+                throw new UserNotFoundException("User not found");
 
             await _userManager.RemoveAuthenticationTokenAsync(user, "MyApp", "AccessToken");
         }
@@ -142,7 +147,7 @@ public class AuthService : IAuthService
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
-                throw new InvalidOperationException("User not found");
+                throw new UserNotFoundException("User not found");
 
             return new UserResDto
             {
@@ -215,9 +220,9 @@ public class AuthService : IAuthService
         try
         {
             var sub = ValidateRefreshToke(token);
-            if(sub == null)
-                throw new InvalidOperationException("Invalid token");
-            var user = await _userManager.FindByIdAsync(sub) ?? throw new InvalidOperationException("User not found");
+            if (sub == null)
+                throw new InvalidTokenException();
+            var user = await _userManager.FindByIdAsync(sub) ?? throw new UserNotFoundException("User not found");
             var roles = await _userManager.GetRolesAsync(user);
             var claims = new List<Claim>
             {

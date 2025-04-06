@@ -7,7 +7,7 @@ namespace backend.Services.Interfaces
 {
     public interface IProductService
     {
-        Task<(IEnumerable<ProductDto>,int totalPages)> GetProductsAsync(int page,int pageSize, string? search,string ? categoryId,float ?from, float ?to);
+        Task<(IEnumerable<ProductDto>,int totalPages)> GetProductsAsync(int page,int pageSize,bool desc, string? search,string ? categoryId,float ?from, float ?to);
         Task<IEnumerable<CartDisplayDto>> GetCartItemsAsync(IEnumerable<string> list);
         Task<ProductDto> CreateProduct(ProductDto productDto);
         Task<CateogryDto> CreateCategory(CateogryDto cateogryDto);

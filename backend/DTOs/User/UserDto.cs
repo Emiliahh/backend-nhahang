@@ -6,10 +6,16 @@ namespace backend.DTOs.User
     {
         public string name { get; set; } = null!;
         public string email { get; set; } = null!;
-        public string ?password { get; set; } = null!;
+        public string? password { get; set; }
         public string phone { get; set; } = null!;
-        public string ?address { get; set; }
+        public string? address { get; set; }
     }
+
+    public class UpdateUser : UserDto
+    {
+        public string? newPassword { get; set; }
+    }
+
     public class UserDtoValidator : AbstractValidator<UserDto>
     {
         public UserDtoValidator()
@@ -23,7 +29,7 @@ namespace backend.DTOs.User
 
             RuleFor(x => x.phone)
                 .NotEmpty().WithMessage("Phone number is required.")
-                .Matches(@"^\d{9}$").WithMessage("Phone number must be 10 digits long.");
+                .Matches(@"^\d{10}$").WithMessage("Phone number must be 10 digits long.");
 
             RuleFor(x => x.password)
                 .MinimumLength(8).WithMessage("Password must be at least 8 characters long.")
@@ -32,12 +38,22 @@ namespace backend.DTOs.User
                 .Matches("[0-9]").WithMessage("Password must contain at least one number.")
                 .Matches("[!@#$%^&*(),.?\":{}|<>]").WithMessage("Password must contain at least one special character.")
                 .When(x => !string.IsNullOrEmpty(x.password));
+        }
+    }
 
-            RuleFor(x => x.phone)
-                .NotEmpty().WithMessage("Phone number is required.");
+    public class UpdateUserValidator : AbstractValidator<UpdateUser>
+    {
+        public UpdateUserValidator()
+        {
+            Include(new UserDtoValidator());
 
-            RuleFor(x => x.address)
-                .NotEmpty().WithMessage("Address is required.");
+            RuleFor(x => x.newPassword)
+                .MinimumLength(8).WithMessage("Password must be at least 8 characters long.")
+                .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
+                .Matches("[a-z]").WithMessage("Password must contain at least one lowercase letter.")
+                .Matches("[0-9]").WithMessage("Password must contain at least one number.")
+                .Matches("[!@#$%^&*(),.?\":{}|<>]").WithMessage("Password must contain at least one special character.")
+                .When(x => !string.IsNullOrEmpty(x.newPassword));
         }
     }
 }

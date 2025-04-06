@@ -6,6 +6,7 @@ using backend.Services.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
+using static backend.Exceptions.ProductException;
 
 namespace backend.Services.Implement
 {
@@ -56,12 +57,12 @@ namespace backend.Services.Implement
                 var existingproduct = await _context.Products.FirstOrDefaultAsync(x => x.Id == productDto.Id);
                 if (category == null)
                 {
-                    throw new ValidationException("Category not found");
+                    throw new CategoryNotExistException(productDto.CategoryId);
 
                 }
                 if (existingproduct != null)
                 {
-                    throw new ValidationException("Product already exists");
+                    throw new ProductAlreadyExistException(existingproduct.Id);
                 }
                 var product = new Product
                 {
@@ -124,7 +125,7 @@ namespace backend.Services.Implement
             }).ToListAsync();
         }
 
-        public async Task<(IEnumerable<ProductDto>,int totalPages)> GetProductsAsync(int page, int pageSize, string? search, string? categoryId, float? from, float? to)
+        public async Task<(IEnumerable<ProductDto>,int totalPages)> GetProductsAsync(int page, int pageSize,bool desc, string? search, string? categoryId, float? from, float? to)
         {
             var query = _context.Products
                 .Include(x => x.Category)
@@ -143,7 +144,10 @@ namespace backend.Services.Implement
             {
                 query = query.Where(x => x.Price >= from.Value);
             }
-
+            if (desc == true)
+            {
+                query = query.OrderByDescending(x => x.Price);
+            }
             if (to.HasValue)
             {
                 query = query.Where(x => x.Price <= to.Value);
@@ -169,7 +173,7 @@ namespace backend.Services.Implement
 
         public async Task<Product> UpdateProduct(ProductDto pd)
         {
-            var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == pd.Id) ?? throw new ValidationException("Product not found");
+            var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == pd.Id) ?? throw new ProductNotFoundException(pd.Id);
             product.Name = pd.Name;
             product.Price = pd.Price;
             product.CategoryId = pd.CategoryId;

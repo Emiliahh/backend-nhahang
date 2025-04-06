@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using static backend.Exceptions.ProductException;
 
 namespace backend.Controllers
 {
@@ -26,10 +27,11 @@ namespace backend.Controllers
             [FromQuery] float? from,
             [FromQuery] float? to,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10
+            [FromQuery] int pageSize = 10,
+            [FromQuery] bool desc = false
             )
         {
-            var (product,totalPage)= await _service.GetProductsAsync(page,pageSize,search, categoryId, from, to);
+            var (product,totalPage)= await _service.GetProductsAsync(page,pageSize, desc,search, categoryId, from, to);
             return Ok(new
             {
                 currentPage = page,
@@ -46,6 +48,18 @@ namespace backend.Controllers
             {
                 await _service.CreateProduct(productDto);
                 return Ok(new { message = "Product created successfully" });
+            }
+            catch (ProductAlreadyExistException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (CategoryNotExistException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -88,6 +102,10 @@ namespace backend.Controllers
             {
                 var product = await _service.UpdateProduct(pd);
                 return Ok(product);
+            }
+            catch (ProductNotFoundException e)
+            {
+                return NotFound(e.Message);
             }
             catch (Exception E)
             {

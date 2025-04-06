@@ -1,4 +1,5 @@
 ﻿using backend.DTOs.User;
+using backend.Exceptions;
 using backend.Models;
 using backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -29,23 +30,42 @@ namespace backend.Controllers
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            var token = await _authService.LoginAsync(loginDto, Response);
-            if (token == null)
+            try
             {
-                return Unauthorized();
+                var token = await _authService.LoginAsync(loginDto, Response);
+                return Ok(new { token });
             }
-            return Ok(new { token });
+            catch (UserNotFoundException e)
+            {
+                return Unauthorized(e.Message);
+            }
+            catch (PasswordMismatchException e)
+            {
+                return Unauthorized(e.Message);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] UserDto userDto)
         {
-            var user = await _authService.RegisterAsync(userDto);
-            if (user == null)
+            try
             {
-                return BadRequest();
+                var user = await _authService.RegisterAsync(userDto);
+                return Ok(user);
             }
-            return Ok(user);
+            catch (UserAlreadyExistException e)
+            {
+                return Conflict(e.Message);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+
+            }
         }
         [Authorize]
         [HttpGet]
@@ -75,6 +95,7 @@ namespace backend.Controllers
         {
             try
             {
+                //handle
                 var user = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
                 if (user == null)
                 {
@@ -82,6 +103,10 @@ namespace backend.Controllers
                 }
                 var userInfo = await _authService.GetUserInfo(user);
                 return Ok(userInfo);
+            }
+            catch(UserNotFoundException e)
+            {
+                return Unauthorized(e.Message);
             }
             catch (Exception e)
             {
@@ -108,7 +133,7 @@ namespace backend.Controllers
                 return Unauthorized(e.Message);
             }
         }
-        
+
         [HttpGet]
         [Route("refresh")]
         public async Task<IActionResult> IssueToken()
@@ -121,7 +146,15 @@ namespace backend.Controllers
                     return Unauthorized();
                 }
                 var newToken = await _authService.IssueRefreshToken(token);
-                return Ok(new {token= newToken });
+                return Ok(new { token = newToken });
+            }
+            catch (InvalidTokenException e)
+            {
+                return Unauthorized(e.Message);
+            }
+            catch (UserNotFoundException e)
+            {
+                return Unauthorized(e.Message);
             }
             catch (Exception e)
             {

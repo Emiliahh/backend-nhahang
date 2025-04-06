@@ -31,10 +31,6 @@ public partial class NhahangContext : IdentityDbContext<User, Role, Guid>
 
     public virtual DbSet<Product> Products { get; set; }
 
-
-    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //    => optionsBuilder.UseMySql("name=ConnectionStrings:NhahangDatabase", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.37-mysql"));
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
        base.OnModelCreating(modelBuilder);
