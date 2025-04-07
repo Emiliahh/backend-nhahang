@@ -32,8 +32,8 @@ namespace backend.Controllers
         {
             try
             {
-                var token = await _authService.LoginAsync(loginDto, Response);
-                return Ok(new { token });
+                var (res, token) = await _authService.LoginAsync(loginDto, Response);
+                return Ok(new { token, user = res });
             }
             catch (UserNotFoundException e)
             {
@@ -95,16 +95,16 @@ namespace backend.Controllers
         {
             try
             {
-                //handle
                 var user = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
                 if (user == null)
                 {
                     return Unauthorized();
                 }
                 var userInfo = await _authService.GetUserInfo(user);
+                userInfo.isAdmin = User.IsInRole("Admin");
                 return Ok(userInfo);
             }
-            catch(UserNotFoundException e)
+            catch (UserNotFoundException e)
             {
                 return Unauthorized(e.Message);
             }
@@ -132,6 +132,14 @@ namespace backend.Controllers
             {
                 return Unauthorized(e.Message);
             }
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        [Route("check-admin")]
+        public IActionResult CheckUser()
+        {
+            return Ok("you can access");
+
         }
 
         [HttpGet]

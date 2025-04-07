@@ -85,14 +85,14 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<string> LoginAsync(LoginDto loginDto,HttpResponse response)
+    public async Task<(UserResDto res, string token)> LoginAsync(LoginDto loginDto, HttpResponse response)
     {
         try
         {
             var user = await _userManager.FindByEmailAsync(loginDto.email);
             if (user == null)
             {
-                throw new  UserNotFoundException("User not found");
+                throw new UserNotFoundException("User not found");
             }
             if(!Argon2.Verify(user.PasswordHash, loginDto.password))
             {
@@ -117,7 +117,15 @@ public class AuthService : IAuthService
                 Secure = false,
                 Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_config["JWT:Refresh:RefreshExpirationDay"]))
             });
-            return GenerateJwt(claims);
+            var res = new UserResDto
+            {
+                name = user.UserName,
+                phone = user.Phone,
+                address = user.Address,
+                email = user.Email,
+                isAdmin = roles.Contains("Admin")
+            };
+            return (res, GenerateJwt(claims));
         }
         catch (Exception ex)
         {

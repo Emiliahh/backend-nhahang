@@ -118,13 +118,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("ALLOW");
 
-app.Use(async (context, next) =>
-{
-    Console.WriteLine(context.Request.Cookies["auth_token"]);
-    Console.WriteLine("Incoming request: " + context.Request.Path);
-    Console.WriteLine(context.Request.Cookies["auth_token"]);
-    await next();
-});
+//app.Use(async (context, next) =>
+//{
+//    Console.WriteLine(context.Request.Cookies["auth_token"]);
+//    Console.WriteLine("Incoming request: " + context.Request.Path);
+//    Console.WriteLine(context.Request.Cookies["auth_token"]);
+//    await next();
+//});
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
