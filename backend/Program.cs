@@ -40,11 +40,11 @@ builder.Services.AddSwaggerGen(c =>
             {
                 Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
                 }
             },
-            new string[] {}
+            new string[]{}
         }
     });
 });
@@ -134,7 +134,7 @@ app.MapControllers();
 
 static async Task EnsureRolesExist(RoleManager<Role> roleManager)
 {
-    string[] roles = { "User", "Admin" };
+    string[] roles = { "User", "Admin" ,"Staff" };
 
     foreach (var role in roles)
     {

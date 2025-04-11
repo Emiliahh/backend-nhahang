@@ -24,7 +24,7 @@ public class AuthService : IAuthService
         _config = config;
         _context = context;
     }
-
+    // tao jwt
     public string GenerateJwt(IList<Claim> claims)
     {
         try
@@ -47,7 +47,7 @@ public class AuthService : IAuthService
             throw new Exception("Error generating JWT token", ex);
         }
     }
-
+    // dang ky
     public async Task<User> RegisterAsync(UserDto userDto)
     {
         try
@@ -85,70 +85,62 @@ public class AuthService : IAuthService
         }
     }
 
+    // dang nhap
     public async Task<(UserResDto res, string token)> LoginAsync(LoginDto loginDto, HttpResponse response)
     {
-        try
+        var user = await _userManager.FindByEmailAsync(loginDto.email);
+        if (user == null)
         {
-            var user = await _userManager.FindByEmailAsync(loginDto.email);
-            if (user == null)
-            {
-                throw new UserNotFoundException("User not found");
-            }
-            if(!Argon2.Verify(user.PasswordHash, loginDto.password))
-            {
-                throw new PasswordMismatchException("Invalid password");
-            }
-            var roles = await _userManager.GetRolesAsync(user);
-            var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            };
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-            var refreshToken = RefreshToken(claims);
-            var token = GenerateJwt(claims);
-            response.Cookies.Append("auth_token", refreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-                Secure = false,
-                Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_config["JWT:Refresh:RefreshExpirationDay"]))
-            });
-            var res = new UserResDto
-            {
-                name = user.UserName,
-                phone = user.Phone,
-                address = user.Address,
-                email = user.Email,
-                isAdmin = roles.Contains("Admin")
-            };
-            return (res, GenerateJwt(claims));
+            throw new UserNotFoundException("User not found");
         }
-        catch (Exception ex)
+        if (!Argon2.Verify(user.PasswordHash, loginDto.password))
         {
-            throw new Exception("Error logging in", ex);
+            throw new PasswordMismatchException("Invalid password");
         }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+    };
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        var refreshToken = RefreshToken(claims);
+        var token = GenerateJwt(claims);
+        response.Cookies.Append("auth_token", refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            SameSite = SameSiteMode.Lax,
+            Secure = false,
+            Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_config["JWT:Refresh:RefreshExpirationDay"]))
+        });
+
+        var res = new UserResDto
+        {
+            name = user.UserName,
+            phone = user.Phone,
+            address = user.Address,
+            email = user.Email,
+            roles= roles.ToList(),
+        };
+
+        return (res, token);
     }
 
+    // dang xuat
     public async Task LogoutAsync(string id)
     {
-        try
-        {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
                 throw new UserNotFoundException("User not found");
 
             await _userManager.RemoveAuthenticationTokenAsync(user, "MyApp", "AccessToken");
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error logging out", ex);
-        }
     }
-
+    // get userInfo
     public async Task<UserResDto> GetUserInfo(string id)
     {
         try
@@ -156,13 +148,15 @@ public class AuthService : IAuthService
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
                 throw new UserNotFoundException("User not found");
+            var roles = await _userManager.GetRolesAsync(user);
 
             return new UserResDto
             {
                 name = user.UserName,
                 phone = user.Phone,
                 address = user.Address,
-                email = user.Email
+                email = user.Email,
+                roles =roles.ToList(),
             };
         }
         catch (Exception ex)
@@ -170,6 +164,8 @@ public class AuthService : IAuthService
             throw new Exception("Error retrieving user info", ex);
         }
     }
+    // tao refresh token
+    /*@param claims list*/
     public string RefreshToken(IList<Claim> claims)
     {
         try
@@ -191,6 +187,7 @@ public class AuthService : IAuthService
             throw new Exception("Error generating refresh token", ex);
         }
     }
+    // xac thuc access token
     public string ValidateRefreshToke(string token)
     {
         try
@@ -223,10 +220,9 @@ public class AuthService : IAuthService
         }
     }
 
+    // tao refresh token
     public async Task<string> IssueRefreshToken(string token)
     {
-        try
-        {
             var sub = ValidateRefreshToke(token);
             if (sub == null)
                 throw new InvalidTokenException();
@@ -244,12 +240,8 @@ public class AuthService : IAuthService
             //var refreshToken = RefreshToken(claims);
             var newToken = GenerateJwt(claims);
             return newToken;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error issuing refresh token", ex);
-        }
     }
+    // promote thanh admin
     public async Task<User> Promote(string id)
     {
         try
@@ -271,5 +263,19 @@ public class AuthService : IAuthService
             throw new Exception("Error promoting user", ex);
         }
     }
-        
+    // promote thanh nhan vien
+    public async Task<User> PromoteEmployee(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+            throw new InvalidOperationException("User not found");
+
+        if (await _userManager.IsInRoleAsync(user, "Staff"))
+            throw new InvalidOperationException("User is already a staff");
+
+        await _userManager.RemoveFromRoleAsync(user, "User");
+        await _userManager.AddToRoleAsync(user, "Staff");
+
+        return user;
+    }
 }

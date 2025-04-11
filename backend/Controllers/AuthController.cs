@@ -30,6 +30,10 @@ namespace backend.Controllers
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState); 
+            }
             try
             {
                 var (res, token) = await _authService.LoginAsync(loginDto, Response);
@@ -91,7 +95,7 @@ namespace backend.Controllers
         [Authorize]
         [HttpGet]
         [Route("authorize")]
-        public async Task<IActionResult> Authorozie()
+        public async Task<IActionResult> Authorize()
         {
             try
             {
@@ -101,7 +105,6 @@ namespace backend.Controllers
                     return Unauthorized();
                 }
                 var userInfo = await _authService.GetUserInfo(user);
-                userInfo.isAdmin = User.IsInRole("Admin");
                 return Ok(userInfo);
             }
             catch (UserNotFoundException e)
@@ -125,7 +128,7 @@ namespace backend.Controllers
                 {
                     return Unauthorized();
                 }
-                //var userInfo = await _authService.Promote(user);
+                var userInfo = await _authService.Promote(user);
                 return Ok("ni hao wo shi asmin");
             }
             catch (Exception e)
@@ -133,10 +136,39 @@ namespace backend.Controllers
                 return Unauthorized(e.Message);
             }
         }
+        [Authorize]
+        [HttpGet]
+        [Route("promote-staff")]
+        public async Task<IActionResult> PromoteStaff()
+        {
+            try
+            {
+                var user = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (user == null)
+                {
+                    return Unauthorized();
+                }
+                var userInfo = await _authService.PromoteEmployee(user);
+                return Ok("ni hao wo shi asmin");
+            }
+            catch (Exception e)
+            {
+                return Unauthorized(e.Message);
+            }
+        }
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpGet]
+        [Route("check-access")]
+        public IActionResult CheckUser()
+        {
+            return Ok("you can access");
+
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpGet]
         [Route("check-admin")]
-        public IActionResult CheckUser()
+        public IActionResult CheckAdmin()
         {
             return Ok("you can access");
 

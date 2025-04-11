@@ -6,6 +6,6 @@
         public string ?phone { get; set; }
         public string ?email { get; set; }
         public string ?address { get; set; }
-        public bool isAdmin { get; set; }
+        public IEnumerable<string> roles { get; set; }
     }
 }

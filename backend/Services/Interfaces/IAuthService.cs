@@ -13,6 +13,7 @@ namespace backend.Services.Interfaces
         string GenerateJwt(IList<Claim> claims);
         string RefreshToken(IList<Claim> claims);
         Task<User> Promote(string id);
+        Task<User> PromoteEmployee(string id);
         string ValidateRefreshToke(string token);
         Task<string> IssueRefreshToken(string token);
 
