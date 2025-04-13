@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class uwu : Migration
+    public partial class hajime : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -41,7 +41,7 @@ namespace backend.Migrations
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Phone = table.Column<string>(type: "longtext", nullable: false, collation: "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Address = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false, collation: "utf8mb4_0900_ai_ci")
+                    Address = table.Column<string>(type: "longtext", nullable: true, collation: "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true, collation: "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -74,17 +74,17 @@ namespace backend.Migrations
                 .Annotation("Relational:Collation", "utf8mb4_0900_ai_ci");
 
             migrationBuilder.CreateTable(
-                name: "category",
+                name: "Categories",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3")
+                    Id = table.Column<string>(type: "varchar(255)", nullable: false, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Name = table.Column<string>(type: "longtext", nullable: true, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PRIMARY", x => x.id);
+                    table.PrimaryKey("PK_Categories", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .Annotation("Relational:Collation", "utf8mb4_0900_ai_ci");
@@ -216,21 +216,30 @@ namespace backend.Migrations
                 .Annotation("Relational:Collation", "utf8mb4_0900_ai_ci");
 
             migrationBuilder.CreateTable(
-                name: "foodorder",
+                name: "Foodorders",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    userId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    status = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3")
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    PaymentMethod = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Address = table.Column<string>(type: "longtext", nullable: true, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TotalPrice = table.Column<float>(type: "float", nullable: false),
+                    DeliveryFee = table.Column<float>(type: "float", nullable: false),
+                    OrderTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    InternalNote = table.Column<string>(type: "longtext", nullable: true, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeliveryTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Note = table.Column<string>(type: "longtext", nullable: true, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PRIMARY", x => x.id);
+                    table.PrimaryKey("PK_Foodorders", x => x.Id);
                     table.ForeignKey(
-                        name: "foodorder_ibfk_1",
-                        column: x => x.userId,
+                        name: "FK_Foodorders_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                 })
@@ -238,114 +247,89 @@ namespace backend.Migrations
                 .Annotation("Relational:Collation", "utf8mb4_0900_ai_ci");
 
             migrationBuilder.CreateTable(
-                name: "product",
+                name: "Products",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    price = table.Column<float>(type: "float", nullable: true),
-                    image = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    categoryId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    description = table.Column<string>(type: "varchar(3000)", maxLength: 3000, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3")
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Name = table.Column<string>(type: "longtext", nullable: true, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Price = table.Column<float>(type: "float", nullable: true),
+                    Image = table.Column<string>(type: "longtext", nullable: true, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CategoryId = table.Column<string>(type: "varchar(255)", nullable: true, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "longtext", nullable: true, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    isDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PRIMARY", x => x.id);
+                    table.PrimaryKey("PK_Products", x => x.Id);
                     table.ForeignKey(
-                        name: "product_ibfk_1",
-                        column: x => x.categoryId,
-                        principalTable: "category",
-                        principalColumn: "id");
+                        name: "FK_Products_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .Annotation("Relational:Collation", "utf8mb4_0900_ai_ci");
 
             migrationBuilder.CreateTable(
-                name: "payment",
+                name: "Cartitems",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    orderId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    amount = table.Column<float>(type: "float", nullable: true),
-                    transactionCode = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    paymentDate = table.Column<DateTime>(type: "datetime", nullable: true)
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ProductId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    Note = table.Column<string>(type: "longtext", nullable: true, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PRIMARY", x => x.id);
-                    table.ForeignKey(
-                        name: "payment_ibfk_1",
-                        column: x => x.orderId,
-                        principalTable: "foodorder",
-                        principalColumn: "id");
-                })
-                .Annotation("MySql:CharSet", "utf8mb4")
-                .Annotation("Relational:Collation", "utf8mb4_0900_ai_ci");
-
-            migrationBuilder.CreateTable(
-                name: "cartitem",
-                columns: table => new
-                {
-                    userId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    productId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    quantity = table.Column<int>(type: "int", nullable: false),
-                    note = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PRIMARY", x => new { x.userId, x.productId })
+                    table.PrimaryKey("PRIMARY", x => new { x.UserId, x.ProductId })
                         .Annotation("MySql:IndexPrefixLength", new[] { 0, 0 });
                     table.ForeignKey(
-                        name: "cartItem_ibfk_1",
-                        column: x => x.userId,
+                        name: "FK_Cartitems_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "cartItem_ibfk_2",
-                        column: x => x.productId,
-                        principalTable: "product",
-                        principalColumn: "id");
+                        name: "FK_Cartitems_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .Annotation("Relational:Collation", "utf8mb4_0900_ai_ci");
 
             migrationBuilder.CreateTable(
-                name: "orderdetail",
+                name: "Orderdetails",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    orderId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    productId = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3"),
-                    quantity = table.Column<int>(type: "int", nullable: true),
-                    note = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true, collation: "utf8mb3_general_ci")
-                        .Annotation("MySql:CharSet", "utf8mb3")
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    OrderId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ProductId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Quantity = table.Column<int>(type: "int", nullable: true),
+                    Note = table.Column<string>(type: "longtext", nullable: true, collation: "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PRIMARY", x => x.id);
+                    table.PrimaryKey("PK_Orderdetails", x => x.Id);
                     table.ForeignKey(
-                        name: "orderdetail_ibfk_1",
-                        column: x => x.orderId,
-                        principalTable: "foodorder",
-                        principalColumn: "id");
+                        name: "FK_Orderdetails_Foodorders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Foodorders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "orderdetail_ibfk_2",
-                        column: x => x.productId,
-                        principalTable: "product",
-                        principalColumn: "id");
+                        name: "FK_Orderdetails_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .Annotation("Relational:Collation", "utf8mb4_0900_ai_ci");
@@ -394,36 +378,29 @@ namespace backend.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "cartItem_ibfk_2",
-                table: "cartitem",
-                column: "productId");
+                name: "IX_Cartitems_ProductId",
+                table: "Cartitems",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "userId",
-                table: "foodorder",
-                column: "userId");
+                name: "IX_Foodorders_UserId",
+                table: "Foodorders",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "orderId",
-                table: "orderdetail",
-                column: "orderId",
-                unique: true);
+                name: "IX_Orderdetails_OrderId",
+                table: "Orderdetails",
+                column: "OrderId");
 
             migrationBuilder.CreateIndex(
-                name: "productId",
-                table: "orderdetail",
-                column: "productId");
+                name: "IX_Orderdetails_ProductId",
+                table: "Orderdetails",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "orderId1",
-                table: "payment",
-                column: "orderId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "categoryId",
-                table: "product",
-                column: "categoryId");
+                name: "IX_Products_CategoryId",
+                table: "Products",
+                column: "CategoryId");
         }
 
         /// <inheritdoc />
@@ -445,28 +422,25 @@ namespace backend.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "cartitem");
+                name: "Cartitems");
 
             migrationBuilder.DropTable(
-                name: "orderdetail");
-
-            migrationBuilder.DropTable(
-                name: "payment");
+                name: "Orderdetails");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "product");
+                name: "Foodorders");
 
             migrationBuilder.DropTable(
-                name: "foodorder");
-
-            migrationBuilder.DropTable(
-                name: "category");
+                name: "Products");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
         }
     }
 }

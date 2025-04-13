@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json;
 using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 //builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddDbContext<NhahangContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICartService, CartService>();
@@ -109,6 +111,16 @@ builder.Services.AddAuthentication(x =>
     });
 
 var app = builder.Build();
+var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadPath),
+    RequestPath = "/uploads"
+});
+if (!Directory.Exists(uploadPath))
+{
+    Directory.CreateDirectory(uploadPath);
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -129,6 +141,8 @@ app.UseCors("ALLOW");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
+
 
 app.MapControllers();
 

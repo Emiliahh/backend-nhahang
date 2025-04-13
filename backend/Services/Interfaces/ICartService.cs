@@ -7,7 +7,7 @@ namespace backend.Services.Interfaces
     {
         Task<Cartitem> addProduct(string userId, CartItemDto cart);
         Task<IEnumerable<CartItemDto>> getCartItem(string userId);
-        Task<bool> Remove(string userId, string productId);
-        Task<Cartitem> updateQuantity(string userId, string productId, int quantity);
+        Task<bool> Remove(string userId, Guid productId);
+        Task<Cartitem> updateQuantity(string userId, Guid productId, int quantity);
     }
 }

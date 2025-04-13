@@ -83,7 +83,7 @@ namespace backend.Services.Implement
                 throw new Exception(e.Message);
             }
         }
-        public async Task<bool> Remove(string userId, string productId)
+        public async Task<bool> Remove(string userId, Guid productId)
         {
             try
             {
@@ -105,7 +105,7 @@ namespace backend.Services.Implement
                 throw new Exception(e.Message);
             }
         }
-        public async Task<Cartitem> updateQuantity(string userId, string productId, int quantity)
+        public async Task<Cartitem> updateQuantity(string userId, Guid productId, int quantity)
         {
             try
             {
@@ -116,7 +116,7 @@ namespace backend.Services.Implement
                 var existing = await _context.Cartitems.FirstOrDefaultAsync(x => x.ProductId == productId && x.UserId == parsedUserId);
                 if (existing == null)
                 {
-                    throw new ProductNotFoundException(productId);
+                    throw new ProductNotFoundException(productId.ToString());
                 }
                 existing.Quantity = quantity;
                 _context.Cartitems.Update(existing);

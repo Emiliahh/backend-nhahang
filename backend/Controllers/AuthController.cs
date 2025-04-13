@@ -116,7 +116,7 @@ namespace backend.Controllers
                 return Unauthorized(e.Message);
             }
         }
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpGet]
         [Route("promote")]
         public async Task<IActionResult> Promote()

@@ -7,7 +7,7 @@ public partial class Cartitem
 {
     public Guid ? UserId { get; set; }
 
-    public string ProductId { get; set; } = null!;
+    public Guid ProductId { get; set; } 
 
     public int Quantity { get; set; }
 

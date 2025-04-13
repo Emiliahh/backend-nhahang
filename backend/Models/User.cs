@@ -16,5 +16,5 @@ public partial class User: IdentityUser<Guid>
 
     public virtual ICollection<Cartitem> Cartitems { get; set; } = new List<Cartitem>();
 
-    public virtual ICollection<Foodorder> Foodorders { get; set; } = new List<Foodorder>();
+    public virtual ICollection<Order> Foodorders { get; set; } = new List<Order>();
 }

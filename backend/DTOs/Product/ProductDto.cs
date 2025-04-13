@@ -2,9 +2,19 @@
 
 namespace backend.DTOs.Product
 {
+    public class CreateProductDto
+    {
+        public string Name { get; set; } = null!;
+        public float Price { get; set; }
+        public IFormFile? Image { get; set; }  
+        public string CategoryId { get; set; } = null!;
+        public string? Description { get; set; }
+    }
+
     public class ProductDto
     {
-        public string Id { get; set; } = null!;
+
+        public  Guid Id { get; set; }
 
         public string Name { get; set; } = null!;
 

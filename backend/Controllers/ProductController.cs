@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.Net.Http;
 using static backend.Exceptions.ProductException;
 
 namespace backend.Controllers
@@ -41,12 +42,12 @@ namespace backend.Controllers
             });
         }
         [HttpPost("add")]
-        [Authorize(Roles ="Admin")]
-        public async Task<IActionResult> CreateProduct([FromBody] ProductDto productDto)
+        //[Authorize(Roles ="Admin")]
+        public async Task<IActionResult> CreateProduct([FromForm] CreateProductDto productDto)
         {
             try
             {
-                await _service.CreateProduct(productDto);
+                var product = await _service.CreateProduct(productDto);
                 return Ok(new { message = "Product created successfully" });
             }
             catch (ProductAlreadyExistException ex)
@@ -90,17 +91,17 @@ namespace backend.Controllers
             return await _service.GetCateogry();
         }
         [HttpPost("cart-display")]
-        public async Task<IEnumerable<CartDisplayDto>> GetCartItemsAsync([FromBody] IEnumerable<string> list)
+        public async Task<IEnumerable<CartDisplayDto>> GetCartItemsAsync([FromBody] IEnumerable<Guid> list)
         {
             return await _service.GetCartItemsAsync(list);
         }
-        [HttpPut("update")]
+        [HttpPut("update/{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> upgradeProduct([FromBody] ProductDto pd)
+        public async Task<IActionResult> upgradeProduct([FromForm] CreateProductDto pd,Guid id)
         {
             try
             {
-                var product = await _service.UpdateProduct(pd);
+                var product = await _service.UpdateProduct(pd,id);
                 return Ok(product);
             }
             catch (ProductNotFoundException e)
@@ -113,8 +114,8 @@ namespace backend.Controllers
             }
         }
         [HttpDelete("delete/{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(string id)
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(Guid id)
         {
             try
             {

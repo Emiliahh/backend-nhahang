@@ -2,7 +2,7 @@
 {
     public class CartDisplayDto
     {
-        public string id { get; set; } = null!;
+        public Guid id { get; set; }
         public float price { get; set; }
         public string? name { get; set; }
     }

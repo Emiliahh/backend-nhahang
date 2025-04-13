@@ -35,7 +35,7 @@ namespace backend.Controllers
         }
         [Authorize]
         [HttpDelete("remove/{productId}")]
-        public async Task<IActionResult> Remove(string productId)
+        public async Task<IActionResult> Remove(Guid productId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _cartService.Remove(userId, productId);
@@ -47,7 +47,7 @@ namespace backend.Controllers
         }
         [Authorize]
         [HttpPut("update/{productId}")]
-        public async Task<IActionResult> UpdateQuantity(string productId, [FromQuery] int quantity)
+        public async Task<IActionResult> UpdateQuantity(Guid productId, [FromQuery] int quantity)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var cart = await _cartService.updateQuantity(userId, productId, quantity);

@@ -5,7 +5,8 @@ namespace backend.Models;
 
 public partial class Product
 {
-    public string Id { get; set; } = null!;
+
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     public string? Name { get; set; }
 

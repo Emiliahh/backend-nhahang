@@ -127,259 +127,141 @@ namespace backend.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("longtext");
+
+                    b.Property<float>("DeliveryFee")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("DeliveryTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("InternalNote")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("OrderTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<float>("TotalPrice")
+                        .HasColumnType("float");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Foodorders");
+                });
+
             modelBuilder.Entity("backend.Models.Cartitem", b =>
                 {
                     b.Property<Guid?>("UserId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("userId")
-                        .UseCollation("ascii_general_ci");
+                        .HasColumnType("char(36)");
 
-                    b.Property<string>("ProductId")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("productId")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("ProductId"), "utf8mb3");
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Note")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)")
-                        .HasColumnName("note")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Note"), "utf8mb3");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int")
-                        .HasColumnName("quantity");
+                        .HasColumnType("int");
 
                     b.HasKey("UserId", "ProductId")
                         .HasName("PRIMARY")
                         .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
 
-                    b.HasIndex(new[] { "ProductId" }, "cartItem_ibfk_2");
+                    b.HasIndex("ProductId");
 
-                    b.ToTable("cartitem", (string)null);
+                    b.ToTable("Cartitems");
                 });
 
             modelBuilder.Entity("backend.Models.Category", b =>
                 {
                     b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("id")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Id"), "utf8mb3");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("name")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Name"), "utf8mb3");
-
-                    b.HasKey("Id")
-                        .HasName("PRIMARY");
-
-                    b.ToTable("category", (string)null);
-                });
-
-            modelBuilder.Entity("backend.Models.Foodorder", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("id")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Id"), "utf8mb3");
-
-                    b.Property<string>("CheckOutType")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("DeliveryTime")
-                        .HasColumnType("datetime(6)");
+                    b.HasKey("Id");
 
-                    b.Property<string>("Note")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Status")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("status")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Status"), "utf8mb3");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("char(36)")
-                        .HasColumnName("userId")
-                        .UseCollation("ascii_general_ci");
-
-                    b.HasKey("Id")
-                        .HasName("PRIMARY");
-
-                    b.HasIndex(new[] { "UserId" }, "userId");
-
-                    b.ToTable("foodorder", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("backend.Models.Orderdetail", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("id")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Id"), "utf8mb3");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Note")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)")
-                        .HasColumnName("note")
-                        .UseCollation("utf8mb3_general_ci");
+                        .HasColumnType("longtext");
 
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Note"), "utf8mb3");
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("char(36)");
 
-                    b.Property<string>("OrderId")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("orderId")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("OrderId"), "utf8mb3");
-
-                    b.Property<string>("ProductId")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("productId")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("ProductId"), "utf8mb3");
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("char(36)");
 
                     b.Property<int?>("Quantity")
-                        .HasColumnType("int")
-                        .HasColumnName("quantity");
+                        .HasColumnType("int");
 
-                    b.HasKey("Id")
-                        .HasName("PRIMARY");
+                    b.HasKey("Id");
 
-                    b.HasIndex(new[] { "OrderId" }, "orderId")
-                        .IsUnique();
+                    b.HasIndex("OrderId");
 
-                    b.HasIndex(new[] { "ProductId" }, "productId");
+                    b.HasIndex("ProductId");
 
-                    b.ToTable("orderdetail", (string)null);
-                });
-
-            modelBuilder.Entity("backend.Models.Payment", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("id")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Id"), "utf8mb3");
-
-                    b.Property<float?>("Amount")
-                        .HasColumnType("float")
-                        .HasColumnName("amount");
-
-                    b.Property<string>("OrderId")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("orderId")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("OrderId"), "utf8mb3");
-
-                    b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("datetime")
-                        .HasColumnName("paymentDate");
-
-                    b.Property<string>("TransactionCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("transactionCode")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("TransactionCode"), "utf8mb3");
-
-                    b.HasKey("Id")
-                        .HasName("PRIMARY");
-
-                    b.HasIndex(new[] { "OrderId" }, "orderId")
-                        .IsUnique()
-                        .HasDatabaseName("orderId1");
-
-                    b.ToTable("payment", (string)null);
+                    b.ToTable("Orderdetails");
                 });
 
             modelBuilder.Entity("backend.Models.Product", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("id")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Id"), "utf8mb3");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("CategoryId")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("categoryId")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("CategoryId"), "utf8mb3");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(3000)
-                        .HasColumnType("varchar(3000)")
-                        .HasColumnName("description")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Description"), "utf8mb3");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Image")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)")
-                        .HasColumnName("image")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Image"), "utf8mb3");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("name")
-                        .UseCollation("utf8mb3_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Name"), "utf8mb3");
+                        .HasColumnType("longtext");
 
                     b.Property<float?>("Price")
-                        .HasColumnType("float")
-                        .HasColumnName("price");
+                        .HasColumnType("float");
 
                     b.Property<bool>("isDeleted")
                         .HasColumnType("tinyint(1)");
 
-                    b.HasKey("Id")
-                        .HasName("PRIMARY");
+                    b.HasKey("Id");
 
-                    b.HasIndex(new[] { "CategoryId" }, "categoryId");
+                    b.HasIndex("CategoryId");
 
-                    b.ToTable("product", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("backend.Models.Role", b =>
@@ -535,82 +417,70 @@ namespace backend.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Order", b =>
+                {
+                    b.HasOne("backend.Models.User", "User")
+                        .WithMany("Foodorders")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("backend.Models.Cartitem", b =>
                 {
                     b.HasOne("backend.Models.Product", "Product")
                         .WithMany("Cartitems")
                         .HasForeignKey("ProductId")
-                        .IsRequired()
-                        .HasConstraintName("cartItem_ibfk_2");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("backend.Models.User", "User")
                         .WithMany("Cartitems")
                         .HasForeignKey("UserId")
-                        .IsRequired()
-                        .HasConstraintName("cartItem_ibfk_1");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Product");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("backend.Models.Foodorder", b =>
-                {
-                    b.HasOne("backend.Models.User", "User")
-                        .WithMany("Foodorders")
-                        .HasForeignKey("UserId")
-                        .HasConstraintName("foodorder_ibfk_1");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("backend.Models.Orderdetail", b =>
                 {
-                    b.HasOne("backend.Models.Foodorder", "Order")
-                        .WithOne("Orderdetail")
-                        .HasForeignKey("backend.Models.Orderdetail", "OrderId")
-                        .HasConstraintName("orderdetail_ibfk_1");
+                    b.HasOne("Order", "Order")
+                        .WithMany("Orderdetails")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("backend.Models.Product", "Product")
                         .WithMany("Orderdetails")
                         .HasForeignKey("ProductId")
-                        .HasConstraintName("orderdetail_ibfk_2");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Order");
 
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("backend.Models.Payment", b =>
-                {
-                    b.HasOne("backend.Models.Foodorder", "Order")
-                        .WithOne("Payment")
-                        .HasForeignKey("backend.Models.Payment", "OrderId")
-                        .HasConstraintName("payment_ibfk_1");
-
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("backend.Models.Product", b =>
                 {
                     b.HasOne("backend.Models.Category", "Category")
                         .WithMany("Products")
-                        .HasForeignKey("CategoryId")
-                        .HasConstraintName("product_ibfk_1");
+                        .HasForeignKey("CategoryId");
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Order", b =>
+                {
+                    b.Navigation("Orderdetails");
                 });
 
             modelBuilder.Entity("backend.Models.Category", b =>
                 {
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("backend.Models.Foodorder", b =>
-                {
-                    b.Navigation("Orderdetail");
-
-                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("backend.Models.Product", b =>
