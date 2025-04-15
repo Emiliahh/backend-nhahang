@@ -13,20 +13,16 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class ProductController(IProductService service) : ControllerBase
     {
-        private readonly IProductService _service;
+        private readonly IProductService _service = service;
 
-        public ProductController(IProductService service)
-        {
-            _service = service;
-        }
         [HttpGet]
         public async Task<IActionResult> GetProductsAsync(
             [FromQuery] string? search,
             [FromQuery] string? categoryId,
-            [FromQuery] float? from,
-            [FromQuery] float? to,
+            [FromQuery] decimal? from,
+            [FromQuery] decimal? to,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] bool desc = false

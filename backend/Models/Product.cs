@@ -10,7 +10,7 @@ public partial class Product
 
     public string? Name { get; set; }
 
-    public float? Price { get; set; }
+    public decimal? Price { get; set; }
 
     public string? Image { get; set; }
 
@@ -20,9 +20,9 @@ public partial class Product
 
     public bool isDeleted { get; set; } = false;
 
-    public virtual ICollection<Cartitem> Cartitems { get; set; } = new List<Cartitem>();
+    public virtual ICollection<Cartitem> Cartitems { get; set; } = [];
 
     public virtual Category? Category { get; set; }
 
-    public virtual ICollection<Orderdetail> Orderdetails { get; set; } = new List<Orderdetail>();
+    public virtual ICollection<Orderdetail> Orderdetails { get; set; } = [];
 }

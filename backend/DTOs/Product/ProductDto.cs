@@ -5,7 +5,7 @@ namespace backend.DTOs.Product
     public class CreateProductDto
     {
         public string Name { get; set; } = null!;
-        public float Price { get; set; }
+        public decimal Price { get; set; }
         public IFormFile? Image { get; set; }  
         public string CategoryId { get; set; } = null!;
         public string? Description { get; set; }
@@ -18,7 +18,7 @@ namespace backend.DTOs.Product
 
         public string Name { get; set; } = null!;
 
-        public float Price { get; set; }
+        public decimal Price { get; set; }
 
         public string? Image { get; set; }
 

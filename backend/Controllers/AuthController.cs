@@ -17,12 +17,10 @@ namespace backend.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IConfiguration _config;
         private readonly IAuthService _authService;
 
-        public AuthController(IConfiguration config, IAuthService authService)
+        public AuthController( IAuthService authService)
         {
-            _config = config;
             _authService = authService;
         }
 

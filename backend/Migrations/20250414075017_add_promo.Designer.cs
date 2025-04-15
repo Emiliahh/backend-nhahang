@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(NhahangContext))]
-    partial class NhahangContextModelSnapshot : ModelSnapshot
+    [Migration("20250414075017_add_promo")]
+    partial class add_promo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,20 +139,14 @@ namespace backend.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("longtext");
 
-                    b.Property<decimal>("DeliveryFee")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<float>("DeliveryFee")
+                        .HasColumnType("float");
 
-                    b.Property<DateTime?>("DeliveryTime")
+                    b.Property<DateTime>("DeliveryTime")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<decimal?>("Discount")
-                        .HasColumnType("decimal(65,30)");
 
                     b.Property<string>("InternalNote")
                         .HasColumnType("longtext");
-
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Note")
                         .HasColumnType("longtext");
@@ -160,14 +157,11 @@ namespace backend.Migrations
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("ProductTotal")
-                        .HasColumnType("decimal(65,30)");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<float>("TotalPrice")
+                        .HasColumnType("float");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("char(36)");
@@ -227,17 +221,10 @@ namespace backend.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("char(36)");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(65,30)");
-
                     b.Property<Guid>("ProductId")
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("Quantity")
+                    b.Property<int?>("Quantity")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -267,8 +254,8 @@ namespace backend.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("longtext");
 
-                    b.Property<decimal?>("Price")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<float?>("Price")
+                        .HasColumnType("float");
 
                     b.Property<bool>("isDeleted")
                         .HasColumnType("tinyint(1)");

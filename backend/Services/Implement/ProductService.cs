@@ -9,23 +9,18 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using System.Buffers.Text;
 using static backend.Exceptions.ProductException;
+using Microsoft.EntityFrameworkCore;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace backend.Services.Implement
 {
-    public class ProductService : IProductService
+    public class ProductService(NhahangContext context, IValidator<ProductDto> validator, IHttpContextAccessor httpContextAccessor) : IProductService
     {
-        private readonly NhahangContext _context;
+        private readonly NhahangContext _context = context;
         private readonly string _imageUploadPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IValidator<ProductDto> _validator;
-        public ProductService(NhahangContext context, IValidator<ProductDto> validator , IHttpContextAccessor httpContextAccessor)
-        {
-            _context = context;
-            _validator = validator;
-            _httpContextAccessor = httpContextAccessor;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+        private readonly IValidator<ProductDto> _validator = validator;
 
-        }
         private string GetBaseUrl()
         {
             var request = _httpContextAccessor.HttpContext?.Request;
@@ -37,11 +32,11 @@ namespace backend.Services.Implement
             return $"{request.Scheme}://{request.Host}";
         }
 
-        public Task<CateogryDto> CreateCategory(CateogryDto cateogryDto)
+        public async Task<CateogryDto> CreateCategory(CateogryDto cateogryDto)
         {
             try
             {
-                var existing = _context.Categories.FirstOrDefault(x => x.Id == cateogryDto.Id);
+                var existing = await _context.Categories.FirstOrDefaultAsync(x => x.Id == cateogryDto.Id);
                 if (existing != null)
                 {
                     throw new ValidationException("Category already exists");
@@ -53,7 +48,7 @@ namespace backend.Services.Implement
                 };
                 _context.Categories.Add(category);
                 _context.SaveChanges();
-                return Task.FromResult(cateogryDto);
+                return cateogryDto;
             }
             catch (Exception e)
             {
@@ -130,7 +125,7 @@ namespace backend.Services.Implement
                  {
                      id = x.Id,
                      name = x.Name ?? string.Empty,
-                     price = x.Price ?? 0f
+                     price = x.Price ?? 0
                  });
             return await query.ToListAsync();
         }
@@ -144,7 +139,7 @@ namespace backend.Services.Implement
             }).ToListAsync();
         }
 
-        public async Task<(IEnumerable<ProductDto>,int totalPages)> GetProductsAsync(int page, int pageSize,bool desc, string? search, string? categoryId, float? from, float? to)
+        public async Task<(IEnumerable<ProductDto>,int totalPages)> GetProductsAsync(int page, int pageSize,bool desc, string? search, string? categoryId, decimal? from, decimal? to)
         {
             var query = _context.Products
                 .Include(x => x.Category)
@@ -180,7 +175,7 @@ namespace backend.Services.Implement
             {
                 Id = x.Id,
                 Name = x.Name ?? string.Empty,
-                Price = x.Price ?? 0f,
+                Price = x.Price ?? 0,
                 CategoryId = x.CategoryId,
                 Description = x.Description,
                 Image = string.IsNullOrEmpty(x.Image) ? null : $"{baseUrl}{x.Image}"

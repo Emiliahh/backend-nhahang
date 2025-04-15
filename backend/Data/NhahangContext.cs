@@ -29,6 +29,9 @@ public partial class NhahangContext : IdentityDbContext<User, Role, Guid>
 
     public virtual DbSet<Product> Products { get; set; }
 
+    public virtual DbSet<Promo> Promos { get; set; }
+
+    public virtual DbSet<PromoUsage> PromoUsages { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -43,6 +46,17 @@ public partial class NhahangContext : IdentityDbContext<User, Role, Guid>
                 .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
         });
 
+        modelBuilder.Entity<PromoUsage>(entity =>
+        {
+            entity.HasIndex(ci => new { ci.UserId, ci.PromoId })
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<Promo>(entity =>
+        {
+            entity.HasIndex(e => e.Code)
+                .IsUnique();
+        });
         modelBuilder.Entity<User>().HasKey(x => x.Id);
         modelBuilder.Entity<Role>().HasKey(x => x.Id);
 

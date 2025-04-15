@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(NhahangContext))]
-    partial class NhahangContextModelSnapshot : ModelSnapshot
+    [Migration("20250414193817_addpaid")]
+    partial class addpaid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -139,7 +142,7 @@ namespace backend.Migrations
                     b.Property<decimal>("DeliveryFee")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<DateTime?>("DeliveryTime")
+                    b.Property<DateTime>("DeliveryTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<decimal?>("Discount")

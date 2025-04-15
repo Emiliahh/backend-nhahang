@@ -12,19 +12,25 @@ public partial class Order
 
     public string? Address { get; set; }
 
-    public float TotalPrice { get; set; }
+    public decimal TotalPrice { get; set; }
 
-    public float DeliveryFee { get; set; }
+    public decimal? Discount { get; set; } 
+
+    public decimal DeliveryFee { get; set; }
+
+    public decimal ProductTotal { get; set; }
+
+    public bool IsPaid { get; set; } = false;
 
     public DateTime OrderTime { get; set; } = DateTime.Now;
 
     public string? InternalNote { get; set; }
 
-    public DateTime DeliveryTime { get; set; }
+    public DateTime? DeliveryTime { get; set; }
 
     public string? Note { get; set; }
 
-    public virtual ICollection<Orderdetail> Orderdetails { get; set; } = new List<Orderdetail>();
+    public virtual ICollection<Orderdetail> Orderdetails { get; set; } = [];
 
     public virtual User? User { get; set; }
 }

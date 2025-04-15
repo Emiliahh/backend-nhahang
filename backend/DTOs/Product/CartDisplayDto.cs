@@ -3,7 +3,7 @@
     public class CartDisplayDto
     {
         public Guid id { get; set; }
-        public float price { get; set; }
+        public decimal price { get; set; }
         public string? name { get; set; }
     }
 }

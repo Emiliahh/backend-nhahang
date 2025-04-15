@@ -14,7 +14,9 @@ public partial class User: IdentityUser<Guid>
 
     public string ? Address { get; set; }
 
-    public virtual ICollection<Cartitem> Cartitems { get; set; } = new List<Cartitem>();
+    public virtual ICollection<Cartitem> Cartitems { get; set; } = [];
 
-    public virtual ICollection<Order> Foodorders { get; set; } = new List<Order>();
+    public virtual ICollection<Order> Foodorders { get; set; } = [];
+
+    public virtual ICollection<PromoUsage> PromoUsages { get; set; } = [];
 }
