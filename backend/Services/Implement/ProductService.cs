@@ -116,6 +116,15 @@ namespace backend.Services.Implement
             }
         }
 
+        public async Task<IEnumerable<string?>> Search(string search)
+        {
+            var query = _context.Products
+                .Where(x => x.Name.Contains(search))
+                .Include(x=>x.Orderdetails)
+                .OrderByDescending(x=>x.Orderdetails.Count())
+                .Select(x => x.Name);
+            return await query.ToListAsync();
+        }
 
         public async Task<IEnumerable<CartDisplayDto>> GetCartItemsAsync(IEnumerable<Guid> list)
         {
@@ -125,7 +134,8 @@ namespace backend.Services.Implement
                  {
                      id = x.Id,
                      name = x.Name ?? string.Empty,
-                     price = x.Price ?? 0
+                     price = x.Price ?? 0,
+                     category = x.Category.Name ?? string.Empty
                  });
             return await query.ToListAsync();
         }
@@ -184,6 +194,26 @@ namespace backend.Services.Implement
             .Take(pageSize)
             .ToListAsync();
             return (products, totalPages);
+        }
+
+        public async Task<ProductDto?> GetProductAsync(Guid id)
+        {
+            var baseUrl = GetBaseUrl();
+
+            return await _context.Products
+                .Where(x => x.Id == id)
+                .Select(x => new ProductDto
+                {
+                    Id = x.Id,
+                    Name = x.Name ?? string.Empty,
+                    Price = x.Price ?? 0,
+                    CategoryId = x.CategoryId,
+                    Description = x.Description ?? string.Empty,
+                    Image = !string.IsNullOrWhiteSpace(x.Image)
+                        ? $"{baseUrl}{x.Image}"
+                        : null
+                })
+                .FirstOrDefaultAsync();
         }
 
 

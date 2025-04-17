@@ -2,6 +2,7 @@
 using backend.Exceptions;
 using backend.Models;
 using backend.Services.Interfaces;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,10 +19,12 @@ namespace backend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IValidator<UserDto> _userDtoValidator;
 
-        public AuthController( IAuthService authService)
+        public AuthController( IAuthService authService, IValidator<UserDto> userDtoValidator)
         {
             _authService = authService;
+            _userDtoValidator = userDtoValidator;
         }
 
         [HttpPost]
@@ -54,6 +57,11 @@ namespace backend.Controllers
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] UserDto userDto)
         {
+            var validationResult = await _userDtoValidator.ValidateAsync(userDto);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
             try
             {
                 var user = await _authService.RegisterAsync(userDto);

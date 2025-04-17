@@ -63,6 +63,20 @@ namespace backend.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
             }
         }
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string search)
+        {
+            try
+            {
+                var result = await _service.Search(search);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+            }
+        }
+
         [HttpPost("category")]
         public async Task<IActionResult> CreateCategory([FromBody] CateogryDto cateogryDto)
         {
@@ -80,6 +94,23 @@ namespace backend.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
             }
         }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetProductAsync(Guid id)
+        {
+            try
+            {
+                var product = await _service.GetProductAsync(id);
+                if (product == null)
+                {
+                    return NotFound(new { message = "Product not found" });
+                }
+                return Ok(product);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+            }
+        }
 
         [HttpGet("category")]
         public async Task<IEnumerable<CateogryDto>> GetCateogry()
@@ -87,9 +118,18 @@ namespace backend.Controllers
             return await _service.GetCateogry();
         }
         [HttpPost("cart-display")]
-        public async Task<IEnumerable<CartDisplayDto>> GetCartItemsAsync([FromBody] IEnumerable<Guid> list)
+        public async Task<IEnumerable<CartDisplayDto>> GetCartItemsAsync([FromBody] IEnumerable<string> list)
         {
-            return await _service.GetCartItemsAsync(list);
+
+            var validGuids = new List<Guid>();
+            foreach (var item in list)
+            {
+                if (Guid.TryParse(item, out var guid))
+                {
+                    validGuids.Add(guid);
+                }
+            }
+            return await _service.GetCartItemsAsync(validGuids);
         }
         [HttpPut("update/{id}")]
         [Authorize(Roles = "Admin")]

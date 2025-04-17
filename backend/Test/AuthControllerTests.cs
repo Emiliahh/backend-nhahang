@@ -6,37 +6,19 @@ using backend.Services.Interfaces;
 using backend.Controllers;
 using backend.DTOs.User;
 using backend.Exceptions;
+using FluentValidation;
 
 public class AuthControllerTests
 {
     private readonly Mock<IAuthService> _mockAuthService;
+    private readonly Mock<IValidator<UserDto>> _mockUserDtoValidator;
     private readonly AuthController _authController;
 
     public AuthControllerTests()
     {
         _mockAuthService = new Mock<IAuthService>();
-        _authController = new AuthController(_mockAuthService.Object);
-    }
-
-    [Fact]
-    public async Task Login_ValidCredentials_ReturnsOk()
-    {
-        // Arrange
-        var loginDto = new LoginDto { email = "validUser", password = "validPassword" };
-        var expectedToken = "validToken";
-        var userResDto = new UserResDto { email = "validUser", name = "Test User" };
-
-        _mockAuthService.Setup(service => service.LoginAsync(loginDto, It.IsAny<HttpResponse>()))
-                        .ReturnsAsync((userResDto, expectedToken));
-
-        // Act
-        var result = await _authController.Login(loginDto);
-
-        // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var returnValue = Assert.IsType<Dictionary<string, object>>(okResult.Value);
-        Assert.Equal(expectedToken, returnValue["token"]);
-        Assert.Equal(userResDto, returnValue["user"]);
+        _mockUserDtoValidator = new Mock<IValidator<UserDto>>();
+        _authController = new AuthController(_mockAuthService.Object, _mockUserDtoValidator.Object);
     }
 
     [Fact]

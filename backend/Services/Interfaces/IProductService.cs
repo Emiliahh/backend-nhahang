@@ -14,6 +14,8 @@ namespace backend.Services.Interfaces
         Task<IEnumerable<CateogryDto>> GetCateogry();
         Task<bool> Delete(Guid id);
         Task<Product> UpdateProduct(CreateProductDto pd,Guid productId);
+        Task<ProductDto?> GetProductAsync(Guid id);
+        Task<IEnumerable<string?>> Search(string search);
         //Task<ProductDto> UpdateProduct(ProductDto productDto);
     }
 }

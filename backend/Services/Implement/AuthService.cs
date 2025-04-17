@@ -56,21 +56,20 @@ public class AuthService : IAuthService
             if (existingUser != null)
                 throw new UserAlreadyExistException("Email already exists");
 
-            var hashedPassword = Argon2.Hash(userDto.password);
             var user = new User
             {
                 Email = userDto.email,
                 UserName = userDto.name,
-                PasswordHash = hashedPassword,
                 Phone = userDto.phone,
             };
+            
 
-            var createUserResult = await _userManager.CreateAsync(user);
+            var createUserResult = await _userManager.CreateAsync(user, userDto.password);
             if (!createUserResult.Succeeded)
             {
                 throw new Exception("Failed to create user: " + string.Join(", ", createUserResult.Errors.Select(e => e.Description)));
             }
-
+            
             if (!await _roleManager.RoleExistsAsync("User"))
             {
                 await _roleManager.CreateAsync(new Role { Name = "User" });
@@ -85,6 +84,7 @@ public class AuthService : IAuthService
         }
     }
 
+
     // dang nhap
     public async Task<(UserResDto res, string token)> LoginAsync(LoginDto loginDto, HttpResponse response)
     {
@@ -93,7 +93,8 @@ public class AuthService : IAuthService
         {
             throw new UserNotFoundException("User not found");
         }
-        if (!Argon2.Verify(user.PasswordHash, loginDto.password))
+
+        if (!await _userManager.CheckPasswordAsync(user, loginDto.password))
         {
             throw new PasswordMismatchException("Invalid password");
         }
@@ -125,11 +126,12 @@ public class AuthService : IAuthService
             phone = user.Phone,
             address = user.Address,
             email = user.Email,
-            roles= roles.ToList(),
+            roles = roles.ToList(),
         };
 
         return (res, token);
     }
+
 
     // dang xuat
     public async Task LogoutAsync(string id)
