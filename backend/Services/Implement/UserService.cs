@@ -38,6 +38,14 @@ namespace backend.Services.Implement
                 {
                     existing.FullName = user.Fullname;
                 }
+                if (user.Password != null)
+                {
+                    var updatePassword = _userManager.ChangePasswordAsync(existing, user.OldPassword, user.Password);
+                    if (!updatePassword.Result.Succeeded)
+                    {
+                        throw new PasswordMismatchException("Password mismatch");
+                    }
+                }
                 _context.Users.Update(existing);
                 await _context.SaveChangesAsync();
                 return new UserResDto
