@@ -61,7 +61,7 @@ namespace backend.Services.Implement
             }
         }
 
-        public async Task<(Guid orderId,decimal totalPrice)> CreteOrder(CreateOrderDto dto, string userIdString)
+        public async Task<(Guid orderId, decimal totalPrice)> CreteOrder(CreateOrderDto dto, string userIdString)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -166,7 +166,7 @@ namespace backend.Services.Implement
                         Discount = x.Discount,
                         DeliveryTime = x.DeliveryTime,
                         CustomerName = x.User != null ? x.User.Email ?? "" : "",
-                        IsPaid=x.IsPaid,
+                        IsPaid = x.IsPaid,
                         OrderDetails = x.Orderdetails.Select(y => new OrderDetailDto
                         {
                             ProductId = y.ProductId,
@@ -210,11 +210,11 @@ namespace backend.Services.Implement
                 }
                 order.Status = pStatus;
 
-                if (pStatus == OrderStatus.Delivered && order.PaymentMethod== PaymentMethodType.Cash)
+                if (pStatus == OrderStatus.Delivered && order.PaymentMethod == PaymentMethodType.Cash)
                 {
                     order.DeliveryTime = DateTime.Now;
                     order.IsPaid = true;
-                } 
+                }
                 else if (pStatus == OrderStatus.Cancel)
                 {
                     order.DeliveryTime = null;
@@ -248,5 +248,48 @@ namespace backend.Services.Implement
                 throw new Exception(e.Message);
             }
         }
+        public async Task<IEnumerable<OrderDto>> GetOrdersByUser(Guid id, OrderStatus status)
+        {
+            try
+            {
+
+                var query = await _context.Foodorders
+                    .Include(x => x.Orderdetails)
+                    .Include(x => x.User)
+                    .Where(x=>x.UserId == id && x.Status == status)
+                    .OrderByDescending(x => x.OrderTime)
+                    .Select(x => new OrderDto
+                    {
+                        Id = x.Id,
+                        UserId = x.UserId,
+                        Address = x.Address,
+                        DeliveryFee = x.DeliveryFee,
+                        Note = x.Note,
+                        OrderTime = x.OrderTime,
+                        PaymentMethod = x.PaymentMethod,
+                        Status = x.Status,
+                        TotalPrice = x.TotalPrice,
+                        Discount = x.Discount,
+                        DeliveryTime = x.DeliveryTime,
+                        CustomerName = x.User != null ? x.User.Email ?? "" : "",
+                        IsPaid = x.IsPaid,
+                        OrderDetails = x.Orderdetails.Select(y => new OrderDetailDto
+                        {
+                            ProductId = y.ProductId,
+                            ProductName = y.ProductName,
+                            Price = y.Price,
+                            Quantity = y.Quantity,
+                            Note = y.Note
+                        }).ToList()
+                    }).ToListAsync();
+
+                return query;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
     }
+
 }

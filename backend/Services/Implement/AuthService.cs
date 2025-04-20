@@ -127,7 +127,7 @@ public class AuthService : IAuthService
             phone = user.Phone,
             address = user.Address,
             email = user.Email,
-            roles = roles.ToList(),
+            roles = [.. roles],
         };
 
         return (res, token);
@@ -161,11 +161,11 @@ public class AuthService : IAuthService
         var token = GenerateJwt(claims);
         var res = new UserResDto
         {
-            name = user.UserName,
+            fullname = user.FullName,
             phone = user.Phone,
             address = user.Address,
             email = user.Email,
-            roles = roles.ToList(),
+            roles = [.. roles],
         };
 
         return (res, token, refreshToken);

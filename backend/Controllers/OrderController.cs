@@ -146,6 +146,31 @@ namespace backend.Controllers
                 return Ok(ex.Message);
             }
         }
+        [Authorize]
+        [HttpGet("userOrder")]
+        public async Task<IActionResult> GetOrdersByUser( [FromQuery]int status)
+        {
+            try
+            {
+                if (!Enum.IsDefined(typeof(OrderStatus), status))
+                {
+                    return BadRequest(new { message = "Invalid status" });
+                }
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return BadRequest(new { message = "User not found" });
+                }
+                
+                var pStatus = (OrderStatus)status;
+                var res = await _orderService.GetOrdersByUser(Guid.Parse(userId), pStatus);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
     }
 }
