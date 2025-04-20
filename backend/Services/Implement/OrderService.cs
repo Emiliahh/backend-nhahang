@@ -61,7 +61,7 @@ namespace backend.Services.Implement
             }
         }
 
-        public async Task<CreateOrderDto> CreteOrder(CreateOrderDto dto, string userIdString)
+        public async Task<(Guid orderId,decimal totalPrice)> CreteOrder(CreateOrderDto dto, string userIdString)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -80,6 +80,7 @@ namespace backend.Services.Implement
                     Note = dto.Note,
                     OrderTime = DateTime.Now,
                     Orderdetails = [],
+                    IsPaid = false,
                 };
 
                 if (dto.PromoCode != null)
@@ -122,8 +123,8 @@ namespace backend.Services.Implement
                     {
                         OrderId = order.Id,
                         ProductId = orderDetailDto.ProductId,
-                        ProductName = product.Name??"",
-                        Price = product.Price??0,
+                        ProductName = product.Name ?? "",
+                        Price = product.Price ?? 0,
                         Quantity = orderDetailDto.Quantity,
                         Note = orderDetailDto.Note
                     };
@@ -135,7 +136,7 @@ namespace backend.Services.Implement
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                return dto;
+                return (order.Id, order.TotalPrice);
             }
             catch (Exception e)
             {
@@ -150,7 +151,7 @@ namespace backend.Services.Implement
                 var query = await _context.Foodorders
                     .Include(x => x.Orderdetails)
                     .Include(x => x.User)
-                    .OrderByDescending(x => x.OrderTime) 
+                    .OrderByDescending(x => x.OrderTime)
                     .Select(x => new OrderDto
                     {
                         Id = x.Id,
@@ -163,7 +164,9 @@ namespace backend.Services.Implement
                         Status = x.Status,
                         TotalPrice = x.TotalPrice,
                         Discount = x.Discount,
+                        DeliveryTime = x.DeliveryTime,
                         CustomerName = x.User != null ? x.User.Email ?? "" : "",
+                        IsPaid=x.IsPaid,
                         OrderDetails = x.Orderdetails.Select(y => new OrderDetailDto
                         {
                             ProductId = y.ProductId,
@@ -197,7 +200,7 @@ namespace backend.Services.Implement
                 }
                 var pStatus = (OrderStatus)status;
 
-                if (pStatus == OrderStatus.Cancel && order.Status != OrderStatus.Pending)
+                if (pStatus == OrderStatus.Cancel && order.Status == OrderStatus.Delivered)
                 {
                     throw new ArgumentException("Trạng thái đơn hàng không hợp lệ.");
                 }
@@ -206,11 +209,12 @@ namespace backend.Services.Implement
                     throw new ArgumentException("Trạng thái đơn hàng không hợp lệ.");
                 }
                 order.Status = pStatus;
-                
-                if(pStatus == OrderStatus.Delivered)
+
+                if (pStatus == OrderStatus.Delivered && order.PaymentMethod== PaymentMethodType.Cash)
                 {
                     order.DeliveryTime = DateTime.Now;
-                }
+                    order.IsPaid = true;
+                } 
                 else if (pStatus == OrderStatus.Cancel)
                 {
                     order.DeliveryTime = null;
@@ -224,6 +228,25 @@ namespace backend.Services.Implement
                 throw new Exception(e.Message);
             }
 
+        }
+        public Task<bool> UpdatePaymentStatus(Guid id)
+        {
+            try
+            {
+                var order = _context.Foodorders.FirstOrDefault(x => x.Id == id);
+                if (order == null)
+                {
+                    throw new Exception("Order not found.");
+                }
+                order.IsPaid = true;
+                order.DeliveryTime = DateTime.Now;
+                _context.SaveChanges();
+                return Task.FromResult(true);
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
     }
 }
