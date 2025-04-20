@@ -121,6 +121,30 @@ namespace backend.Controllers
 
             return Ok(new { paymentUrl = response.checkoutUrl });
         }
+        [HttpPost("mobile")]
+        public async Task<IActionResult> generatePayLinkMobile([FromBody] PayLinkDto dto)
+        {
+            var domain = "https://html-starter-blush-six.vercel.app/";
+
+            if (dto == null || dto.Amount <= 0)
+            {
+                return BadRequest(new { message = "Invalid amount" });
+            }
+            var code = Base64Encode(dto.OrderId);
+            Console.WriteLine(code.Length);
+            var paymentLinkRequest = new PaymentData(
+                orderCode: int.Parse(DateTimeOffset.Now.ToString("ffffff")),
+                amount: (int)dto.Amount,
+                description: code,
+                items: [new("Mì tôm hảo hảo ly", 1, 2000)],
+                returnUrl: domain,
+                cancelUrl: domain
+            );
+
+            var response = await payOS.createPaymentLink(paymentLinkRequest);
+
+            return Ok(new { paymentUrl = response.checkoutUrl });
+        }
 
         //https://18a2-2405-4802-1f02-ce0f-857e-9fdb-9dc7-1817.ngrok-free.app //
         [HttpPost("/receive_hook")]
