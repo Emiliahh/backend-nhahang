@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.FileProviders;
+using backend.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +55,7 @@ builder.Services.AddDbContext<NhahangContext>(options => options.UseMySql(connec
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSignalR();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -111,7 +113,9 @@ builder.Services.AddAuthentication(x =>
         //};
     });
 
+
 var app = builder.Build();
+app.MapHub<AdminHub>("/adminHub");
 var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
 app.UseStaticFiles(new StaticFileOptions
 {

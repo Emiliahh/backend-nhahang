@@ -5,6 +5,7 @@ namespace backend.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<User> UpdateUser(UserDto user, string id);
+        Task<bool> UpdatePassword(UpdatePassWord passWord, Guid id);
+        Task<UserResDto> UpdateUser(UpdateUser user, Guid id);
     }
 }

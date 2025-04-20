@@ -1,55 +1,82 @@
 ﻿using backend.Data;
 using backend.DTOs.User;
+using backend.Exceptions;
 using backend.Models;
 using backend.Services.Interfaces;
 using FluentValidation;
 using Isopoh.Cryptography.Argon2;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 
 namespace backend.Services.Implement
 {
-    public class UserService : IUserService
+    public class UserService(NhahangContext context, UserManager<User> userManager, RoleManager<Role> roleManager) : IUserService
     {
-        private readonly NhahangContext _context;
-        private readonly IValidator<UserDto> _validator = new UserDtoValidator();
+        private readonly NhahangContext _context = context;
+        private readonly UserManager<User> _userManager = userManager;
+        private readonly RoleManager<Role> _roleManager = roleManager;
 
-        public UserService(NhahangContext context)
-        {
-            _context = context;
-            
-        }
         // crud for user 
-        public async Task<User> UpdateUser(UserDto user, string id)
+        public async Task<UserResDto> UpdateUser(UpdateUser user, Guid id)
         {
             try
             {
-                var existing = await _context.Users.FindAsync(id);
+                var existing = _userManager.Users.FirstOrDefault(x => x.Id == id);
                 if (existing == null)
                 {
-                    throw new System.ComponentModel.DataAnnotations.ValidationException("Product not found");
+                    throw new UserNotFoundException("user not found");
                 }
-                var validate = await _validator.ValidateAsync(user);
-                if (!validate.IsValid)
+                if (user.Address != null)
                 {
-                    throw new FluentValidation.ValidationException(validate.Errors);
+                    existing.Address = user.Address;
                 }
-
-                //update user from object
-                if (user.password != null)
+                if (user.Phone != null)
                 {
-                    var hash = Argon2.Hash(user.password);
-                    user.password = hash;
+                    existing.Phone = user.Phone;
                 }
-                _context.Entry(existing).CurrentValues.SetValues(user);
+                if (user.Fullname != null)
+                {
+                    existing.FullName = user.Fullname;
+                }
+                _context.Users.Update(existing);
                 await _context.SaveChangesAsync();
-                return existing;
-
+                return new UserResDto
+                {
+                    fullname = existing.FullName,
+                    email = existing.Email,
+                    phone = existing.Phone,
+                    address = existing.Address,
+                    roles = [.. _userManager.GetRolesAsync(existing).Result]
+                };
             }
-            // handle exception
             catch (Exception e)
             {
-                throw new Exception(e.Message);
+                throw new Exception("Error updating user: " + e.Message);
 
+            }
+        }
+        public Task<bool> UpdatePassword(UpdatePassWord passWord, Guid id)
+        {
+            try
+            {
+                var existing = _userManager.Users.FirstOrDefault(x => x.Id == id);
+                if (existing == null)
+                {
+                    throw new UserNotFoundException("user not found");
+                }  
+                var result = _userManager.ChangePasswordAsync(existing, passWord.OldPassword, passWord.NewPassword);
+                if (result.Result.Succeeded)
+                {
+                    return Task.FromResult(true);
+                }
+                else
+                {
+                    throw new Exception("Error updating password: " + result.Result.Errors.ToString());
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error updating password: " + e.Message);
             }
         }
     }

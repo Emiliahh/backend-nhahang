@@ -59,7 +59,8 @@ public class AuthService : IAuthService
             var user = new User
             {
                 Email = userDto.email,
-                UserName = userDto.name,
+                FullName = userDto.fullname,
+                UserName=userDto.email,
                 Phone = userDto.phone,
             };
             
@@ -122,7 +123,7 @@ public class AuthService : IAuthService
 
         var res = new UserResDto
         {
-            name = user.UserName,
+            fullname = user.FullName,
             phone = user.Phone,
             address = user.Address,
             email = user.Email,
@@ -154,7 +155,7 @@ public class AuthService : IAuthService
 
             return new UserResDto
             {
-                name = user.UserName,
+                fullname = user.FullName,
                 phone = user.Phone,
                 address = user.Address,
                 email = user.Email,

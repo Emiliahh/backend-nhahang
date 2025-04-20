@@ -40,6 +40,7 @@
         public string? InternalNote { get; set; }
         public DateTime? DeliveryTime { get; set; }
         public string? Note { get; set; }
+        public bool IsPaid { get; set; }
         public string CustomerName { get; set; } = null!;
         public List<OrderDetailDto> OrderDetails { get; set; } = [];
     }
