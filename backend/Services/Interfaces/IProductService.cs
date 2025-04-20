@@ -16,6 +16,7 @@ namespace backend.Services.Interfaces
         Task<Product> UpdateProduct(CreateProductDto pd,Guid productId);
         Task<ProductDto?> GetProductAsync(Guid id);
         Task<IEnumerable<string?>> Search(string search);
+        Task<IEnumerable<ProductDto>> SearchProducts(IEnumerable<Guid> List);
         //Task<ProductDto> UpdateProduct(ProductDto productDto);
     }
 }

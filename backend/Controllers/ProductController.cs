@@ -163,5 +163,11 @@ namespace backend.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
             }
         }
+        [HttpPost("getProducts")]
+        public async Task<IActionResult> getProducts([FromBody] IEnumerable<Guid> guids)
+        {
+            var result = await _service.SearchProducts(guids);
+            return Ok(result);
+        }
     }
 }

@@ -132,6 +132,43 @@ public class AuthService : IAuthService
         return (res, token);
     }
 
+    public async Task<(UserResDto res, string token, string rfToken)> LoginAsyncMobile(LoginDto loginDto)
+    {
+        var user = await _userManager.FindByEmailAsync(loginDto.email);
+        if (user == null)
+        {
+            throw new UserNotFoundException("User not found");
+        }
+
+        if (!await _userManager.CheckPasswordAsync(user, loginDto.password))
+        {
+            throw new PasswordMismatchException("Invalid password");
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+    };
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        var refreshToken = RefreshToken(claims);
+        var token = GenerateJwt(claims);
+        var res = new UserResDto
+        {
+            name = user.UserName,
+            phone = user.Phone,
+            address = user.Address,
+            email = user.Email,
+            roles = roles.ToList(),
+        };
+
+        return (res, token, refreshToken);
+    }
 
     // dang xuat
     public async Task LogoutAsync(string id)

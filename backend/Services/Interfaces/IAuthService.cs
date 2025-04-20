@@ -16,6 +16,6 @@ namespace backend.Services.Interfaces
         Task<User> PromoteEmployee(string id);
         string ValidateRefreshToke(string token);
         Task<string> IssueRefreshToken(string token);
-
+        Task<(UserResDto res, string token, string rfToken)> LoginAsyncMobile(LoginDto loginDto);
     }
 }

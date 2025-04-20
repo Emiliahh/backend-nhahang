@@ -54,6 +54,32 @@ namespace backend.Controllers
             }
         }
         [HttpPost]
+        [Route("loginMobile")]
+        public async Task<IActionResult> LoginMobile([FromBody] LoginDto loginDto)
+        {
+            //if (!ModelState.IsValid)
+            //{
+            //    return BadRequest(ModelState);
+            //}
+            try
+            {
+                var (res, token, rfToken) = await _authService.LoginAsyncMobile(loginDto);
+                return Ok(new { token, user = res , rfToken });
+            }
+            catch (UserNotFoundException e)
+            {
+                return Unauthorized(e.Message);
+            }
+            catch (PasswordMismatchException e)
+            {
+                return Unauthorized(e.Message);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        [HttpPost]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] UserDto userDto)
         {
@@ -191,6 +217,29 @@ namespace backend.Controllers
                 {
                     return Unauthorized();
                 }
+                var newToken = await _authService.IssueRefreshToken(token);
+                return Ok(new { token = newToken });
+            }
+            catch (InvalidTokenException e)
+            {
+                return Unauthorized(e.Message);
+            }
+            catch (UserNotFoundException e)
+            {
+                return Unauthorized(e.Message);
+            }
+            catch (Exception e)
+            {
+                return Unauthorized(e.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("refreshMobile")]
+        public async Task<IActionResult> IssueTokenMobile([FromBody] string token)
+        {
+            try
+            {
                 var newToken = await _authService.IssueRefreshToken(token);
                 return Ok(new { token = newToken });
             }

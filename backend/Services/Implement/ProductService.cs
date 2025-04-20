@@ -11,6 +11,8 @@ using System.Buffers.Text;
 using static backend.Exceptions.ProductException;
 using Microsoft.EntityFrameworkCore;
 using static System.Net.Mime.MediaTypeNames;
+using System.Numerics;
+using backend.DTOs.User;
 
 namespace backend.Services.Implement
 {
@@ -245,6 +247,25 @@ namespace backend.Services.Implement
 
             await _context.SaveChangesAsync();
             return product;
+        }
+        public async Task<IEnumerable<ProductDto>> SearchProducts(IEnumerable<Guid> List)
+        {
+            var baseUrl = GetBaseUrl();
+            var result = await _context.Products.Where(x => List.Contains(x.Id)).Select(x=>
+                new ProductDto
+                {
+                    Id = x.Id,
+                    Name = x.Name ?? string.Empty,
+                    Price = x.Price ?? 0,
+                    CategoryId = x.CategoryId,
+                    Description = x.Description ?? string.Empty,
+                    Image = !string.IsNullOrWhiteSpace(x.Image)
+                        ? $"{baseUrl}{x.Image}"
+                        : null
+                }
+                ).
+                ToListAsync();
+            return result;
         }
     }
 
