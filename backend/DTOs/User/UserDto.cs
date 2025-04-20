@@ -16,13 +16,22 @@ namespace backend.DTOs.User
     {
         [MaxLength(50)]
         [MinLength(3)]
-        public string ? Fullname { get; set; } 
+        public string? Fullname { get; set; }
         [MinLength(10)]
         [MaxLength(12)]
-        public string? Phone { get; set; } 
+        public string? Phone { get; set; }
         public string? Address { get; set; }
+
+        [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$",
+    ErrorMessage = "Mật khẩu phải có ít nhất 1 chữ in hoa, 1 số và 1 ký tự đặc biệt")]
+        public string? Password { get; set; } = null!;
+        [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$",
+    ErrorMessage = "Mật khẩu phải có ít nhất 1 chữ in hoa, 1 số và 1 ký tự đặc biệt")]
+        public string? OldPassword { get; set; } = null!;
     }
-    public class  UpdatePassWord
+    public class UpdatePassWord
     {
         [Required(ErrorMessage = "Mật khẩu không được để trống")]
         [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
