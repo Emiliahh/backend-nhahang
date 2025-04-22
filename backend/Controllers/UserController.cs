@@ -82,5 +82,20 @@ namespace backend.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
             }
         }
+        [HttpGet]
+        [Route("getuser")]
+        //[Authorize]
+        public async Task<IActionResult> GetUser()
+        {
+            try
+            {
+                var result = await _userService.GetUser();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
+        }
     }
 }

@@ -57,7 +57,7 @@ public class AuthService : IAuthService
                 throw new UserAlreadyExistException("Email already exists");
 
             var user = new User
-            {
+            {   
                 Email = userDto.email,
                 FullName = userDto.fullname,
                 UserName=userDto.email,

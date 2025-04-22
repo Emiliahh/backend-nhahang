@@ -6,6 +6,7 @@ using backend.Services.Interfaces;
 using FluentValidation;
 using Isopoh.Cryptography.Argon2;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace backend.Services.Implement
@@ -71,7 +72,7 @@ namespace backend.Services.Implement
                 if (existing == null)
                 {
                     throw new UserNotFoundException("user not found");
-                }  
+                }
                 var result = _userManager.ChangePasswordAsync(existing, passWord.OldPassword, passWord.NewPassword);
                 if (result.Result.Succeeded)
                 {
@@ -87,5 +88,19 @@ namespace backend.Services.Implement
                 throw new Exception("Error updating password: " + e.Message);
             }
         }
+        public async Task<IEnumerable<UserDto>> GetUser()
+        {
+            var result = await _userManager.Users.Select(x=>new UserDto
+            {
+                fullname=x.FullName,
+                phone=x.Phone
+            }).ToListAsync();
+            if (result == null)
+            {
+                throw new UserNotFoundException("user not found");
+            }
+            return result;
+        }
+
     }
 }

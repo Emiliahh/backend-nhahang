@@ -150,7 +150,7 @@ namespace backend.Controllers
             }
         }
         [HttpDelete("delete/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try
