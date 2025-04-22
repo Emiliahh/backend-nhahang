@@ -1,6 +1,7 @@
 ﻿using backend.DTOs;
 using backend.DTOs.Order;
 using backend.Hubs;
+using backend.Models;
 using backend.Services.Implement;
 using backend.Services.Interfaces;
 using Backend.DTOs;
@@ -17,10 +18,10 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrderController(IOrderService orderService , IHubContext<AdminHub>  hubContext) : ControllerBase
+    public class OrderController(IOrderService orderService, IHubContext<AdminHub> hubContext) : ControllerBase
     {
         private readonly IOrderService _orderService = orderService;
-        private readonly PayOS payOS = new("1c4da33c-6077-486f-8911-54175a573f11", "d28d0082-518f-48da-8dee-1c278cfd609b", "8a45233b7f8bc3ca3f5cc60069b266e33fee79817c4e297291eb2b51235d2450");  
+        private readonly PayOS payOS = new("1c4da33c-6077-486f-8911-54175a573f11", "d28d0082-518f-48da-8dee-1c278cfd609b", "8a45233b7f8bc3ca3f5cc60069b266e33fee79817c4e297291eb2b51235d2450");
         private readonly IHubContext<AdminHub> _hubContext = hubContext;
         public static string Base64Encode(Guid id)
         {
@@ -50,7 +51,7 @@ namespace backend.Controllers
                 {
                     return BadRequest(new { message = "User not found" });
                 }
-                var (orderId,totalPrice) = await _orderService.CreteOrder(orderDto,userId);
+                var (orderId, totalPrice) = await _orderService.CreteOrder(orderDto, userId);
                 if (orderId == null)
                 {
                     return BadRequest(new { message = "Order creation failed" });
@@ -68,12 +69,24 @@ namespace backend.Controllers
             }
         }
         [HttpGet]
-        public async Task<IActionResult> GetUser()
+        public async Task<IActionResult> GetUser([FromQuery] int status,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
-                var res = await _orderService.GetOrders();
-                return Ok(res);
+                if (!Enum.IsDefined(typeof(OrderStatus), status))
+                {
+                    return BadRequest(new { message = "Invalid status" });
+                }
+                var (data,totalPage) = await _orderService.GetOrders(status,page,pageSize);
+                return Ok(new
+                {
+                    currentPage = page,
+                    totalPage,
+                    pageSize,
+                    data,
+                });
             }
             catch (Exception ex)
             {
@@ -82,13 +95,14 @@ namespace backend.Controllers
             }
         }
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateOrderStatus([FromBody] UpdateOrderStatusRequest rq, Guid id )
+        public async Task<IActionResult> UpdateOrderStatus([FromBody] UpdateOrderStatusRequest rq, Guid id)
         {
             try
             {
                 var res = await _orderService.UpdateOrderStatus(id, rq.Status);
                 return Ok(res);
-            }catch(ArgumentException ex)
+            }
+            catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
@@ -101,8 +115,8 @@ namespace backend.Controllers
         public async Task<IActionResult> generatePayLink([FromBody] PayLinkDto dto)
         {
             var domain = "http://localhost:5173/success";
-   
-            if(dto == null || dto.Amount <= 0)
+
+            if (dto == null || dto.Amount <= 0)
             {
                 return BadRequest(new { message = "Invalid amount" });
             }
@@ -172,10 +186,11 @@ namespace backend.Controllers
         }
         [Authorize]
         [HttpGet("userOrder")]
-        public async Task<IActionResult> GetOrdersByUser( [FromQuery]int status)
+        public async Task<IActionResult> GetOrdersByUser([FromQuery] int status)
         {
             try
             {
+
                 if (!Enum.IsDefined(typeof(OrderStatus), status))
                 {
                     return BadRequest(new { message = "Invalid status" });
@@ -185,9 +200,28 @@ namespace backend.Controllers
                 {
                     return BadRequest(new { message = "User not found" });
                 }
-                
+
                 var pStatus = (OrderStatus)status;
                 var res = await _orderService.GetOrdersByUser(Guid.Parse(userId), pStatus);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [Authorize]
+        [HttpPost("cancel")]
+        public async Task<IActionResult> UserCancelOrder([FromQuery] Guid orderId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return BadRequest(new { message = "User not found" });
+                }
+                var res = await _orderService.UserCancelOrder(orderId, Guid.Parse(userId));
                 return Ok(res);
             }
             catch (Exception ex)

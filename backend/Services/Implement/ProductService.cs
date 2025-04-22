@@ -122,8 +122,8 @@ namespace backend.Services.Implement
         {
             var query = _context.Products
                 .Where(x => x.Name.Contains(search))
-                .Include(x=>x.Orderdetails)
-                .OrderByDescending(x=>x.Orderdetails.Count())
+                .Include(x => x.Orderdetails)
+                .OrderByDescending(x => x.Orderdetails.Count())
                 .Select(x => x.Name);
             return await query.ToListAsync();
         }
@@ -144,14 +144,16 @@ namespace backend.Services.Implement
 
         public async Task<IEnumerable<CateogryDto>> GetCateogry()
         {
-            return await _context.Categories.Select(x => new CateogryDto
-            {
-                Id = x.Id,
-                Name = x.Name ?? string.Empty
-            }).ToListAsync();
+            return await _context.Categories
+                .Where(x=>x.Products.Count()>0)
+                .Select(x => new CateogryDto
+                {
+                    Id = x.Id,
+                    Name = x.Name ?? string.Empty
+                }).ToListAsync();
         }
 
-        public async Task<(IEnumerable<ProductDto>,int totalPages)> GetProductsAsync(int page, int pageSize,bool desc, string? search, string? categoryId, decimal? from, decimal? to)
+        public async Task<(IEnumerable<ProductDto>, int totalPages)> GetProductsAsync(int page, int pageSize, bool desc, string? search, string? categoryId, decimal? from, decimal? to)
         {
             var query = _context.Products
                 .Include(x => x.Category)
@@ -181,8 +183,8 @@ namespace backend.Services.Implement
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
             var baseUrl = GetBaseUrl();
-            var products= await query.
-                Where(x=>x.isDeleted==false).
+            var products = await query.
+                Where(x => x.isDeleted == false).
             Select(x => new ProductDto
             {
                 Id = x.Id,
@@ -251,7 +253,7 @@ namespace backend.Services.Implement
         public async Task<IEnumerable<ProductDto>> SearchProducts(IEnumerable<Guid> List)
         {
             var baseUrl = GetBaseUrl();
-            var result = await _context.Products.Where(x => List.Contains(x.Id)).Select(x=>
+            var result = await _context.Products.Where(x => List.Contains(x.Id)).Select(x =>
                 new ProductDto
                 {
                     Id = x.Id,

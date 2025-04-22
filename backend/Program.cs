@@ -59,6 +59,7 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IStaticServicecs, StaticService>();
 builder.Services.AddValidatorsFromAssemblyContaining<ProductValidator>();
 builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<NhahangContext>()

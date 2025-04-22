@@ -144,14 +144,26 @@ namespace backend.Services.Implement
                 throw new Exception("Error occurred while creating order: " + e.Message);
             }
         }
-        public async Task<IEnumerable<OrderDto>> GetOrders()
+        public async Task<(IEnumerable<OrderDto>, int totalPage)> GetOrders(int status, int page, int pagesize)
         {
             try
             {
-                var query = await _context.Foodorders
+                var queryable = _context.Foodorders
                     .Include(x => x.Orderdetails)
                     .Include(x => x.User)
                     .OrderByDescending(x => x.OrderTime)
+                    .AsQueryable();
+
+                if (status != 0)
+                {
+                    queryable = queryable.Where(x => x.Status == (OrderStatus)status);
+                }
+                int totalItem = await queryable.CountAsync();
+                int totalPage = (int)Math.Ceiling((double)totalItem / pagesize);
+
+                var result = await queryable
+                    .Skip((page - 1) * pagesize)
+                    .Take(pagesize)
                     .Select(x => new OrderDto
                     {
                         Id = x.Id,
@@ -177,7 +189,9 @@ namespace backend.Services.Implement
                         }).ToList()
                     }).ToListAsync();
 
-                return query;
+
+                return (result, totalPage);
+
             }
             catch (Exception e)
             {
@@ -256,7 +270,7 @@ namespace backend.Services.Implement
                 var query = await _context.Foodorders
                     .Include(x => x.Orderdetails)
                     .Include(x => x.User)
-                    .Where(x=>x.UserId == id && x.Status == status)
+                    .Where(x => x.UserId == id && x.Status == status)
                     .OrderByDescending(x => x.OrderTime)
                     .Select(x => new OrderDto
                     {
@@ -271,6 +285,7 @@ namespace backend.Services.Implement
                         TotalPrice = x.TotalPrice,
                         Discount = x.Discount,
                         DeliveryTime = x.DeliveryTime,
+                        InternalNote = x.InternalNote,
                         CustomerName = x.User != null ? x.User.Email ?? "" : "",
                         IsPaid = x.IsPaid,
                         OrderDetails = x.Orderdetails.Select(y => new OrderDetailDto
@@ -284,6 +299,41 @@ namespace backend.Services.Implement
                     }).ToListAsync();
 
                 return query;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public Task<bool> UserCancelOrder(Guid orderId,Guid userId)
+        {
+            try
+            {
+                var order = _context.Foodorders.FirstOrDefault(x => x.Id == orderId && x.UserId == userId);
+                if (order == null)
+                {
+                    throw new Exception("Order not found.");
+                }
+                if (order.Status != OrderStatus.Pending)
+                {
+                    throw new ArgumentException("Trạng thái đơn hàng không hợp lệ.");
+                }
+                if(order.Status != OrderStatus.Pending)
+                {
+                    throw new ArgumentException("Trạng thái đơn hàng không hợp lệ.");
+                }
+                var note = "Đã huỷ đơn hàng";
+                if (order.IsPaid)
+                {
+                    order.IsPaid = false;
+                    order.DeliveryTime = null;
+                    note = "Đã huỷ đơn hàng và hoàn tiền";
+                }
+                order.Status = OrderStatus.Cancel;
+                order.DeliveryTime = null;
+                order.InternalNote = note;
+                _context.SaveChanges();
+                return Task.FromResult(true);
             }
             catch (Exception e)
             {
